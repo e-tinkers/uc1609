@@ -87,7 +87,7 @@ Each of these fonts take up different size in flash memory during compilation of
 
 The `font5x7_numeric` only consists of 27 characters from ASCII 0x20(' ') to ASCII 0x3A(':') with a memory footprint of 135 bytes, it is ideal for applications where you only need some symbols and numeric numbers such as displaying date, time or + and - sign, etc. Refer to `test_UC1609_font5x7_numeric.ino` example for its usage.
 
-The `font5x7` provides *printable* range of ASCII from 0x20 to 0x7F. By default `font5x7` would be used if not explicitly set using `UC1609::setFont()` method. It requires 480 bytes of flash memory.
+The `font5x7` provides *printable* range of ASCII from 0x20 to 0x7F. By default `font5x7` would be used if not explicitly set using `setFont()` method. It requires 480 bytes of flash memory.
 
 The `font5x7_symbol` add some emoji-alike icons and symbol between ASCII 0x00 and 0x1F in addition to include the range of `font5x7`. Memory footprint for the font is 640 bytes.
 
@@ -105,22 +105,13 @@ Image array is saved in flash memory instead of load into RAM. A full screen ima
 
 The UC1609 construct create an instance of UC1609 object and allows user to pass in the GPIO pins to be used by Command/Data(CD), Reset(RST), and Chip Select (CS) pin of  the UC1609 module.
 
-```Cpp
-// define the pins to be used based on your Arduino Core
-#define CD  PIN_PC0
-#define RST PIN_PC2
-#define CS  PIN_PC1
-
-UC1609 myLcd{CD, RST, CS}
-```
-
 *void begin(void)*
 
-The `UC1609::begin()` setup the pin mode of each pin to be used for controlling the LCD module, it also called the `SPI.begin()` to enable the SPI communication.
+The `begin()` setup the pin mode of each pin to be used for controlling the LCD module, it also called the `SPI.begin()` to enable the SPI communication.
 
 *void initDisplay(uint8_t VbiasPot = DEFAULT_VBIAS_POT)*
 
-The `UC1609::initDisplay()` initializes the LCD module through SPI and make it ready to be used. The method also allows to pass in a parameter to set the display contrast with `initDisplay(contract_value)` with a value ranging from 0 to 254, the parameter however is optional as if the user does not pass in a parameter, a default value of `DEFAULT_VBIAS_POT` value (`0x49`) would be used.
+The `initDisplay()` initializes the LCD module through SPI and make it ready to be used. The method also allows to pass in a parameter to set the display contrast with `initDisplay(contract_value)` with a value ranging from 0 to 254, the parameter however is optional as if the user does not pass in a parameter, a default value of `DEFAULT_VBIAS_POT` value (`0x49`) would be used.
 
 *void resetDisplay(void)*
 
@@ -164,7 +155,7 @@ This function scrolls the displayed image up by number of pixels specified by `y
 
 *void rotate(uint8_t rotateValue)*
 
-The `UC1609::rotate()` rotates the display orientation based on the `rotateValue` provided. There are two pre-defined macro can be used as the `rotateValue`, `NORMAL_ORIENTATION` (0x04) for the default normal orientation, or `ROTATE_UPSIDE_DOWN` (0x02) for turning the display 180 degree upside down.
+The `rotate()` rotates the display orientation based on the `rotateValue` provided. There are two pre-defined macro can be used as the `rotateValue`, `NORMAL_ORIENTATION` (0x04) for the default normal orientation, or `ROTATE_UPSIDE_DOWN` (0x02) for turning the display 180 degree upside down.
 
 *void invert(bool invert)*
 
