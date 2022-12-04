@@ -1,0 +1,37 @@
+# -----------------------------------------
+# Syntax colouring for UC1609 library
+# -----------------------------------------
+
+# Datatypes (such as objects)
+
+UC1609	KEYWORD1
+
+#Methods / functions
+
+begin	KEYWORD2
+initDisplay	KEYWORD2
+resetDisplay	KEYWORD2
+enableDisplay	KEYWORD2
+clearDisplay	KEYWORD2
+setCursor	KEYWORD2
+drawLine	KEYWORD2
+clearLine	KEYWORD2
+invert	KEYWORD2
+rotate	KEYWORD2
+scroll	KEYWORD2
+setFont KEYWORD2
+setFontScale	KEYWORD2
+printChar	KEYWORD2
+printStr	KEYWORD2
+drawImage	KEYWORD2
+powerDown	KEYWORD2
+
+# Constants
+
+NORMAL	LITERAL1
+INVERTED	LITERAL1
+DISPLAY_ON	LITERAL1
+DISPLAY_OFF	LITERAL1
+SPI_CLOCK	LITERAL1
+DEFAULT_VBIAS_POT	LITERAL1
+
