@@ -7,7 +7,7 @@ Table of contents
 * [Software](#software)
 * [Datasheet](#datasheet)
 
-![ LCD19264 ](https://github.com/e-tinkers/uc1609/blob/main/image/LCD19264_with_UC1609.jpg)
+![LCD19264](https://github.com/e-tinkers/uc1609/blob/main/image/LCD19264_with_UC1609.png)
 
 Overview
 --------------------
