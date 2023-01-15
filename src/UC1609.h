@@ -48,9 +48,9 @@
 // UC1609 contrast (Vbias potentiometer value)
 #define DEFAULT_VBIAS_POT   0x49 // default only used if user does not specify Vbias
 
-// UC1609 Rotate
-#define NORMAL              0x04
-#define ROTATED             0x02
+// UC1609 Screen Rotation
+#define NORMAL_ORIENTATION  0x04
+#define ROTATE_UPSIDE_DOWN  0x02
 
 // UC1609 Display Enable
 #define DISPLAY_ON          1
@@ -58,7 +58,7 @@
 
 // SPI Clock Speed
 #ifndef SPI_CLOCK
-#define SPI_CLOCK          8000000  // MHz
+#define SPI_CLOCK          8000000UL  // 8MHz
 #endif
 
 class UC1609 {
@@ -82,7 +82,9 @@ class UC1609 {
     void printChar(const unsigned char c);
     void printChar(const unsigned char c, uint8_t col, uint8_t line); 
     void printStr(const unsigned char *str, uint8_t col, uint8_t line);
-    void drawImage(int16_t x, int16_t y, uint8_t w, uint8_t h, const uint8_t* data);
+    void printStr(const char *str, uint8_t col, uint8_t line) { printStr((const unsigned char*) str, col, line);};
+    void printDoubleChar(const unsigned char c, uint8_t col, uint8_t line);
+    void drawImage(uint8_t x, uint8_t y, uint8_t w, uint8_t h, const uint8_t* data);
     void powerDown(void);
            
   private:

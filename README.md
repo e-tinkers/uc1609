@@ -58,7 +58,12 @@ Software
 
 **SPI**
 
-The library only supports Hardware SPI defined by the Arduino Core that the library is running on. 
+The library only supports Hardware SPI defined by the Arduino Core that the library is running on.  By default, the SPI communication between the host and the display module is set to operate at 8MHz. In case other clock speed is required, user can define the clock speed by defining the macro `SPI_CLOCK` prior including the library in user program.
+
+```
+#define SPI_CLOCK 4000000UL  // change SPI clock speed from default 8MHz to 4MHz
+#include <UC1609.h>
+```
 
 **buffers**
 
@@ -66,7 +71,7 @@ The library does not use buffer like other libraries found online. As the result
 
 **fonts**
 
-A full 255-character font is carefully implemented and allows user to select a subset to reduce the flash memory footprint. The following diagram ilustrated how the various fonts are overlapping with each other.
+A full 255-character font table is carefully implemented and allows user to select a subset to reduce the flash memory footprint. The following diagram ilustrated how the various fonts are overlapping with each other.
 
 ```
 ASCII Range   Font Name
@@ -101,35 +106,37 @@ Image array is saved in flash memory instead of load into RAM. A full screen ima
 
 **API**
 
-*UC1609(uint8_t cd, uint8_t rst, uint8_t cs)*
+***UC1609(uint8_t cd, uint8_t rst, uint8_t cs)***
 
 The UC1609 construct create an instance of UC1609 object and allows user to pass in the GPIO pins to be used by Command/Data(CD), Reset(RST), and Chip Select (CS) pin of  the UC1609 module.
 
-*void begin(void)*
+***void begin(void)***
 
 The `begin()` setup the pin mode of each pin to be used for controlling the LCD module, it also called the `SPI.begin()` to enable the SPI communication.
 
-*void initDisplay(uint8_t VbiasPot = DEFAULT_VBIAS_POT)*
+***void initDisplay(uint8_t VbiasPot = DEFAULT_VBIAS_POT)***
 
 The `initDisplay()` initializes the LCD module through SPI and make it ready to be used. The method also allows to pass in a parameter to set the display contrast with `initDisplay(contract_value)` with a value ranging from 0 to 254, the parameter however is optional as if the user does not pass in a parameter, a default value of `DEFAULT_VBIAS_POT` value (`0x49`) would be used.
 
-*void resetDisplay(void)*
+The `initDisplay()` call `resetDisplay()` prior the initalization and calling `clearDisplay()` after the initialization of the display.
+
+***void resetDisplay(void)***
 
 The `resetDispaly()`  performs a hardware reset using RST pin by pulling the RST pin LOW and CD pin HIGH. It is used prior the initialization of the LCD or prior the powering down the LCD.
 
-*void enableDisplay(uint8_t onOff)*
+***void enableDisplay(uint8_t onOff)***
 
 This function turns all pixels on the display on (if `onOff=1`) or off(`onOff=0`).
 
-*void clearDisplay()*
+***void clearDisplay()***
 
-This method set the internal display ram to 0.
+This method clear the internal display RAM to 0.
 
-*void setCursor(uint8_t col, uint8_t line)*
+***void setCursor(uint8_t col, uint8_t line)***
 
-This method set the cursor location on the display to `col` (0 - 192), `line` (0-7). 
+This method set the cursor location on the display to `col` (0 - 191), `line` (0-7). 
 
-*void drawLine(uint8_t line, uint8_t dataPattern)*
+***void drawLine(uint8_t line, uint8_t dataPattern)***
 
 This method draws a line or a data pattern from 0 all the way to the end of the `line`. A line consists of 8 vertical pixels with Most Significate Bit(MSB) at the bottom of the line and the Least Significate Bit(LSB) represented the top of the line. For example, `drawline(0, 0x80)` will draw a line at the bottom of the line 0, `drawline(2, 0x81)` will draw two lines on both the top and the bottom of the line 2. See `test_UC1609_basic.ino` for the demostration.
 
@@ -145,23 +152,23 @@ Line      Data Pattern
 7         1 (MSB)
 ```
 
-*void clearLine(uint8_t line)*
+***void clearLine(uint8_t line)***
 
 Unlike the `clearDisplay`, this method clear the specific line of the display. The method is a special version of `drawLine()` by calling the drawLine function with a paramter of 0, so it has the same effect of calling `drawline(line, 0)`.
 
-*void scroll(uint8_t yPixel)*
+***void scroll(uint8_t yPixel)***
 
 This function scrolls the displayed image up by number of pixels specified by `yPixel`(0-64).
 
-*void rotate(uint8_t rotateValue)*
+***void rotate(uint8_t rotateValue)***
 
 The `rotate()` rotates the display orientation based on the `rotateValue` provided. There are two pre-defined macro can be used as the `rotateValue`, `NORMAL_ORIENTATION` (0x04) for the default normal orientation, or `ROTATE_UPSIDE_DOWN` (0x02) for turning the display 180 degree upside down.
 
-*void invert(bool invert)*
+***void invert(bool invert)***
 
 Inverts the display from white text over black background(when `invert=true`) or balck text over white background (when `invert=false`).
 
-*void setFont(const uint8_t * font)*
+***void setFont(const uint8_t * font)***
 
 The `setFont()` method is optional and by default the method is not been called, the `font5x7` font will be used. The following pre-defined value can be used for `font` parameters:
 
@@ -173,23 +180,36 @@ The `setFont()` method is optional and by default the method is not been called,
 
 * font5x7_extended
 
-*void printChar(const unsigned char c)*
+***void setFontScale(uint8_t scale)***
+
+The `setFontScale()` set the font size to either `1` (standard 5x7 font) or `2` (double-size font). 
+
+***void printChar(const unsigned char c)***
 
 This method print a character to the LCD module at whatever location previously set.
 
-*void printChar(const unsigned char c, uint8_t col, uint8_t line)*
+***void printChar(const unsigned char c, uint8_t col, uint8_t line)***
 
 This method is an overloaded function of `printChar(c)` by calling `setCursor(col, line)` first prior to calling `printChar(c)`.
 
-*void printStr(const unsigned char *str, uint8_t col, uint8_t line)*
+***void printDoubleChar(const unsigned char c, uint8_t col, uint8_t line)***
 
-This method print a c-style string at location specified by `col` and `line`. The cursor will be automatically advance to next col or next line.
+This method prints double-sized character by stretching the 5x7 font to twice of it size into 12x16 font (including paddings). The font stretching technique is based on the alogrithm described in ["Hacker's Delight"](https://www.amazon.com/Hackers-Delight-2nd-Henry-Warren/dp/0321842685/) by Henry S. Warran Jr. (2 edition) p. 139-141. 
 
-*void drawImage(int16_t x, int16_t y, uint8_t w, uint8_t h, const uint8_t *  data)*
+The `printDoubleChar()` method does not require to call `setFontScale()` to set the font scale, the function itself assumed that the character to be printed by the function will be double-size.
+
+***void printStr(const char *str, uint8_t col, uint8_t line)***
+***void printStr(const unsigned char *str, uint8_t col, uint8_t line)***
+
+This method print a c-style string at location specified by `col` and `line`. The cursor will be automatically advance to next col or next line. This method supports both standard size character and double-size character, noted that the valid value of `line` for standard size font is 0-7, and 0-3 for double-size character. 
+
+It is required to call `setFontScale(2)` to set the font scale explifiictly to double-size prior using `printStr()` to print double-size string. Refer to `test_UC1609_basic.ino` for the usage example.
+
+***void drawImage(uint8_t x, uint8_t y, uint8_t w, uint8_t h, const uint8_t *  data)***
 
 This method draws an image to the LCD display. The `x` and `y` defines the upper-left corner where the image to be drawed, the `w` and `h` values defined the width and height of the image, `data` is the pointer of the image array stored in Flash memory.
 
-*void powerDown(void)*
+***void powerDown(void)***
 
 This method literally performs a hardware reset (`resetDisplay()`) and turn off all the display pixels with `enableDisplay(0)` to put the display in low power consumption mode which is described in page 40 of the UC1609 datasheet.
 

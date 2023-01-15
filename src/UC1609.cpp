@@ -73,9 +73,15 @@ void UC1609::initDisplay(uint8_t VbiasPOT) {
   
   SPI.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0));
   digitalWrite(_cs, LOW); 
-  _sendCommand(REG_VBIAS_POT , 0);
-  _sendCommand(REG_VBIAS_POT , _VbiasPOT);
-  _sendCommand(REG_MAPPING_CTRL, NORMAL);         // can be ROTATED
+  _sendCommand(REG_SYSTEM_RESET, 0);
+  _sendCommand(REG_VBIAS_POT, 0);
+  _sendCommand(REG_VBIAS_POT, _VbiasPOT);
+  _sendCommand(REG_MAPPING_CTRL, NORMAL_ORIENTATION); // can be ROTATED
+  _sendCommand(REG_COL_ADDR_L, 0);
+  _sendCommand(REG_COL_ADDR_H, 0);
+  _sendCommand(REG_PAGE_ADDER, 0);
+  _sendCommand(REG_SCROLL, 0);
+  _sendCommand(REG_INVERSE_DISPLAY, 0);
   _sendCommand(REG_DISPLAY_ENABLE, DISPLAY_ON);
   digitalWrite(_cs, HIGH);
   SPI.endTransaction();
@@ -128,7 +134,7 @@ void UC1609::clearDisplay() {
 
 /*
  * Sets the cursor to col, page location
- * param:  uint8_t col - 0-192 column number
+ * param:  uint8_t col - 0-191 column number
  *         uint8_t page - 0-7 page number (i.e. line number)
  * return: void
  */
@@ -186,7 +192,7 @@ void UC1609::scroll(uint8_t yPixel) {
 /*
  * This function rotates the display orientation based on the rotatevalue
  * provided. 
- * param:  rotatevalue - NORMAL_ORIENTATION(0x04),  or ROTATE_UPSIDE_DOWN(0x02).
+ * param:  rotatevalue - NORMAL_ORIENTATION(B100),  or ROTATE_UPSIDE_DOWN(0xB010).
  * return: void
  */
 void UC1609::rotate(uint8_t rotateValue) {
@@ -199,7 +205,8 @@ void UC1609::rotate(uint8_t rotateValue) {
 
 /*
  * Inverts the display from white text over black background or vice versa
- * Param:  bool invert: true = invert(white text over black background); false = normal
+ * Param:  bool invert: true = invert(white text over black background); 
+ *                      false = normal
  * return: void
  */
 void UC1609::invert(bool invert) {
@@ -226,6 +233,7 @@ void UC1609::setFontScale(uint8_t scale) {
  * return: void
  */
 void UC1609::printChar(const unsigned char c) {
+
   SPI.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0));
   digitalWrite(_cs, LOW);
   SPI.transfer(0x00); // padding col
@@ -236,11 +244,49 @@ void UC1609::printChar(const unsigned char c) {
   }
   digitalWrite(_cs, HIGH);
   SPI.endTransaction();
+
 }
 
-void UC1609::printChar(const unsigned char c, uint8_t col, uint8_t line) {
+void UC1609::printChar(const unsigned char c, uint8_t column, uint8_t line) {
+    setCursor(column, line);
+    printChar(c);
+}
+
+/*
+ * Prints double-sized by stretching the 5x7 font to twice of it size into 12x16 font 
+ * (including paddings). 
+ * param: const char c - ASCII value of the character;
+ *        uint8_t x - cursor pixel position in x-axis;
+ *        uint8_t y - cusror line (0 - 3) line position (not pixel) in y-axis, noted that
+ *                    there are only 4 lines per screen for double-size font
+ * return: void
+ */
+void UC1609::printDoubleChar(const unsigned char c, uint8_t col, uint8_t line) {
+
+  uint8_t fontWidth = readFontByte(_font[0]);
+  uint8_t fontStart = readFontByte(_font[2]);
+
+  uint8_t buf[24]{0};  // each stretched font is 12x2 bytes, 12 bits wide, and 16 bits high
+  for (uint8_t x = 0; x < fontWidth; x++) {
+    uint16_t stretched = _stretch(readFontByte(_font[(c-fontStart) * fontWidth + x + 4]));
+    buf[x * 2 + 1] = stretched & 0xFF;
+    buf[x * 2 + 2] = stretched & 0xFF;
+    buf[x * 2 + 13] = (uint8_t) (stretched >> 8);
+    buf[x * 2 + 14] = (uint8_t) (stretched >> 8);
+  }
+
   setCursor(col, line);
-  printChar(c);
+
+  SPI.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0));
+  digitalWrite(_cs, LOW);
+  SPI.transfer(&buf[0], 12);
+  _sendCommand(REG_COL_ADDR_L, (col & 0x0F));
+  _sendCommand(REG_COL_ADDR_H, (col & 0xF0) >> 4);
+  _sendCommand(REG_PAGE_ADDER , line + 1);
+  SPI.transfer(&buf[12], 12);
+  digitalWrite(_cs, HIGH);
+  SPI.endTransaction();
+
 }
 
 /*
@@ -249,25 +295,33 @@ void UC1609::printChar(const unsigned char c, uint8_t col, uint8_t line) {
  * return: void
  */
 void UC1609::printStr(const unsigned char *str, uint8_t col, uint8_t line) {
-  setCursor(col, line);
-  while (*str) {
-    printChar(*str++);
-  }
+
+    setCursor(col, line);
+    if (_scale == 1) {
+      while (*str)
+        printChar(*str++);
+    }
+    else {
+      while (*str) {
+        printDoubleChar(*str++, col, line);
+        col += 12;
+      }
+    }
 }
 
 /*
  * Draws a bitmap image 
- * params: uint16_t x - position in x-axis where the image to be draw
- *         uint16_t y - position in y-axis where the image to be draw
+ * params: uint8_t x - position in x-axis where the image to be draw
+ *         uint8_t y - position in y-axis where the image to be draw
  *         uint8_t w - the width of the image
  *         uint8_t h - the height of the image
  *         uint8_t *data - pointer to the image bitmap array
  * return: void
  */
-void UC1609::drawImage(int16_t x, int16_t y, uint8_t w, uint8_t h, const uint8_t* data) {
+void UC1609::drawImage(uint8_t x, uint8_t y, uint8_t w, uint8_t h, const uint8_t* data) {
 
-  uint8_t column = (x < 0) ? 0 : x;
-  uint8_t page = (y < 0) ? 0 : y >> 3;
+  uint8_t column = x;
+  uint8_t page = y >> 3;
   
   SPI.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0));
   digitalWrite(_cs, LOW);

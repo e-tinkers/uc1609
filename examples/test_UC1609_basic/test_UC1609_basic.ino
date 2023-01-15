@@ -29,14 +29,16 @@ void setup() {
 
 
 void loop() {
-    static const unsigned char test0_1[] = "  UC1609 192 x 64 LCD display";
-    static const unsigned char test0_2[] = " 32 characters/line (6x8 font)";
+    static const char test0_1[] = "  UC1609 192 x 64 LCD display";
+    static const char test0_2[] = " 32 characters/line (6x8 font)";
   
-    static const unsigned char test1_1[] = "This is line(page) 0";
-    static const unsigned char test1_2[] = "12345678901234567890123456789012";
-    static const unsigned char test1_3[] = "This is line(page) 7";
+    static const char test1_1[] = "This is line(page) 0";
+    static const char test1_2[] = "12345678901234567890123456789012";
+    static const char test1_3[] = "This is line(page) 7";
+    static const char test1_5[] = "Double-size font";
   
     // Test 0 - printStr and clearDisplay functions
+    lcd.clearDisplay();
     lcd.printStr(test0_1, 0, 0);  // print string test0_1 at line 0, col 0
     lcd.printStr(test0_2, 0, 3);  // line 3, col 0
     delay(5000);
@@ -60,15 +62,15 @@ void loop() {
     lcd.invert(true);           // set display to Inverted mode
     lcd.clearDisplay();
     lcd.printChar('H', 88, 2);  // printChar at line 2, col 88
-    lcd.printChar('-');         // printChar at subsequent location
-    lcd.printChar('C');
+    lcd.printChar('2');         // printChar at subsequent location
+    lcd.printChar('O');
     delay(5000);
     lcd.invert(false);          // set display back to Normal mode
     lcd.clearDisplay();
 
     // Test 4 - font range
     // Symbols are available in font5x7_symbol and font5x7_extended
-    lcd.printStr((const unsigned char*) "Symbols(0x00 - 0x1F)", 0, 0);
+    lcd.printStr("Symbols(0x00 - 0x1F)", 0, 0);
     lcd.setCursor(0, 1);
     for(unsigned char i=0; i<32; i++) {
       lcd.printChar(i); 
@@ -76,7 +78,7 @@ void loop() {
     }
 
     // Those are the fonts available in font5x7
-    lcd.printStr((const unsigned char*) "Printable(0x20 - 0x7F)", 0, 3);
+    lcd.printStr("Printable(0x20 - 0x7F)", 0, 3);
     lcd.setCursor(0, 4);
     for(unsigned char i=32; i<128; i++) {
       lcd.printChar(i); 
@@ -92,6 +94,20 @@ void loop() {
       delay(10);
     }    
     delay(5000);
+
+    // Test 5 - Double font
     lcd.clearDisplay();
+    lcd.setFontScale(2);                // set font scale to 2
+    lcd.printStr(test1_5, 0, 0);
+    lcd.setFontScale(1);
+    lcd.printStr("Print double-size char with a technique which stretches 5x7 font into double size", 0, 2);
+    
+    lcd.printDoubleChar('H', 0, 6);    // printDoubleChar() does not need to setFontScale(2) first
+    lcd.setFontScale(1);
+    lcd.printChar('2', 12, 7);
+    lcd.setFontScale(1);
+    lcd.printDoubleChar('O', 18, 6);
+
+    delay(5000);
 
 }
