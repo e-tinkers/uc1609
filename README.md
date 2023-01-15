@@ -201,9 +201,9 @@ The `printDoubleChar()` method does not require to call `setFontScale()` to set 
 ***void printStr(const char *str, uint8_t col, uint8_t line)***
 ***void printStr(const unsigned char *str, uint8_t col, uint8_t line)***
 
-This method print a c-style string at location specified by `col` and `line`. The cursor will be automatically advance to next col or next line. This method supports both standard size character and double-size character, noted that the valid value of `line` for standard size font is 0-7, and 0-3 for double-size character. 
+This method print a c-style string at location specified by `col` and `line`. The cursor will be automatically advance to next col or next line. 
 
-It is required to call `setFontScale(2)` to set the font scale explifiictly to double-size prior using `printStr()` to print double-size string. Refer to `test_UC1609_basic.ino` for the usage example.
+This method supports both standard size character and double-size character. It is required to call `setFontScale(2)` to set the font scale explifiictly to double-size prior using `printStr()` to print double-size string. Refer to `test_UC1609_basic.ino` for the usage example.
 
 ***void drawImage(uint8_t x, uint8_t y, uint8_t w, uint8_t h, const uint8_t *  data)***
 

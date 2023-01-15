@@ -53,4 +53,14 @@ void loop() {
     delay(5000);
     lcd.clearDisplay();
 
+    // Double-size Numeric Countdown
+    lcd.clearDisplay();
+    lcd.setFontScale(2);
+    for (int i=0; i<24; i++) {
+      lcd.printStr(String(2023-i).c_str(), 72, 3);
+      delay(1000);
+    }
+    lcd.setFontScale(1);
+    lcd.clearDisplay();
+
 }

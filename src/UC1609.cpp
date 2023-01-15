@@ -257,7 +257,7 @@ void UC1609::printChar(const unsigned char c, uint8_t column, uint8_t line) {
  * (including paddings). 
  * param: const char c - ASCII value of the character;
  *        uint8_t x - cursor pixel position in x-axis;
- *        uint8_t y - cusror line (0 - 3) line position (not pixel) in y-axis, noted that
+ *        uint8_t y - cusror line (0 - 7) line position (not pixel) in y-axis, noted that
  *                    there are only 4 lines per screen for double-size font
  * return: void
  */

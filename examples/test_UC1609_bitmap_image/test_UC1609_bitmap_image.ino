@@ -23,6 +23,7 @@ void setup() {
   lcd.begin();
   lcd.initDisplay(contrast);
   lcd.setFont(font5x7);
+  lcd.setFontScale(2);
 }
 
 
@@ -34,12 +35,13 @@ void loop() {
 
   // dummy string for demo display
   static const unsigned char temperatureStr[]{"24.8c"};
-  static const unsigned char humidityStr[]{"73.4%"};
+  float humidity = 73.4;
+  String humidityStr = String(humidity, 1) + "%";
 
   lcd.drawImage(70, 0, 24, 24, thermometerIcon); // 24x24 image
   lcd.printStr(temperatureStr, 96, 1);
   lcd.drawImage(70, 32, 24, 24, humidityIcon);   // 24x24 image
-  lcd.printStr(humidityStr, 96, 5);
+  lcd.printStr(humidityStr.c_str(), 96, 5);
 
   delay(5000);
 
