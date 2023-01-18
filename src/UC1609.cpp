@@ -112,7 +112,7 @@ void UC1609::initDisplay(uint8_t VbiasPOT) {
 
   _VbiasPOT = VbiasPOT;   // DEFAULT_VBIAS_POT or user-provided constract value
   _scale = 1;             // Normal font size
-  _antiAliasingOn = true;
+  _antiAliasingEnable = true;
   
   SPI.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0));
   digitalWrite(_cs, LOW); 
@@ -271,7 +271,7 @@ void UC1609::setFontScale(uint8_t scale) {
 }
 
 void UC1609::setAntiAliasing(bool on) {
-  _antiAliasingOn = on;
+  _antiAliasingEnable = on;
 }
 
 /*
@@ -322,7 +322,7 @@ void UC1609::printDoubleChar(const unsigned char c, uint8_t col, uint8_t line) {
     buf[x * 2 + 14] = (uint8_t) (stretched >> 8);
   }
 
-  if (_antiAliasingOn) _antiAliasing(buf);
+  if (_antiAliasingEnable) _antiAliasing(buf);
 
   setCursor(col, line);
 

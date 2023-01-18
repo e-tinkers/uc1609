@@ -97,7 +97,7 @@ class UC1609 {
     uint8_t _VbiasPOT; // Contrast DEFAULT_VBIAS_POT(0x49), datasheet 00-FE
     const uint8_t * _font = font5x7;
     uint8_t _scale;
-    bool _antiAliasingOn;
+    bool _antiAliasingEnable;
     
     void _sendCommand(uint8_t reg, uint8_t value);
     uint16_t _stretch(uint8_t x);
