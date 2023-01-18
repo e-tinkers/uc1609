@@ -32,12 +32,54 @@ void UC1609::_sendCommand(uint8_t reg, uint8_t value) {
 /* Strentch a byte into a 16-bit word, based on the algorithm in
  * Henry S. Warran Jr. Hacker's Delight (2 edition) p. 139-141
  */
-uint16_t UC1609::_stretch (uint8_t x) {
+uint16_t UC1609::_stretch(uint8_t x) {
   uint16_t d = (uint16_t) x;        // d = 00000000 abcdefgh
   d = (d & 0xF0) << 4 | (d & 0x0F); // d = 0000abcd 0000efgh
   d = (d << 2 | d) & 0x3333;        // d = 00ab00cd 00ef00gh
   d = (d << 1 | d) & 0x5555;        // d = 0a0b0c0d 0e0f0g0h
   return d | d << 1;                // d = aabbccdd eeffgghh
+}
+
+void UC1609::_antiAliasing(uint8_t *array) {
+
+  uint8_t temp[24];
+  memcpy(temp, array, 24);
+
+ for (int adjL=2; adjL<22; adjL=adjL+2) {
+    uint16_t pattern1 = 0x000C;
+    uint16_t pattern2 = 0x0003;
+    uint16_t patternMask = 0x000F;
+    
+    uint16_t bitAddedL = 0x0002;
+    uint16_t bitAddedR = 0x0004;
+    
+    uint16_t matching{0};
+    uint8_t adjR = adjL + 1;
+    
+    for (int i=0; i<6; i++) {
+      uint16_t adjL16 = (uint16_t) array[adjL+12] << 8 | array[adjL];
+      uint16_t adjR16 = (uint16_t) array[adjR+12] << 8 | array[adjR];
+      matching = (((adjL16 & patternMask) == pattern1) & ((adjR16  & patternMask) == pattern2));
+      if (matching) {
+        temp[adjL] |= bitAddedL;
+        temp[adjR] |= bitAddedR;
+      }     
+      matching = (((adjL16 & patternMask) == pattern2) & ((adjR16 & patternMask) == pattern1));
+      if (matching) {
+        temp[adjL] |= bitAddedR;
+        temp[adjR] |= bitAddedL;
+      }
+
+      pattern1 <<= 2;
+      pattern2 <<= 2;
+      patternMask <<= 2;
+      bitAddedL <<= 2;
+      bitAddedR <<= 2;
+    }
+  }
+
+  memcpy(array, temp, 24);
+
 }
 
 /*
@@ -70,6 +112,7 @@ void UC1609::initDisplay(uint8_t VbiasPOT) {
 
   _VbiasPOT = VbiasPOT;   // DEFAULT_VBIAS_POT or user-provided constract value
   _scale = 1;             // Normal font size
+  _antiAliasingOn = true;
   
   SPI.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0));
   digitalWrite(_cs, LOW); 
@@ -221,6 +264,10 @@ void UC1609::setFont(const uint8_t * font) {
   _font = font;
 }
 
+void UC1609::setAntiAliasing(bool on) {
+  _antiAliasingOn = on;
+}
+
 void UC1609::setFontScale(uint8_t scale) {
   if (scale == 1 || scale == 2) {
     _scale = scale;
@@ -274,6 +321,8 @@ void UC1609::printDoubleChar(const unsigned char c, uint8_t col, uint8_t line) {
     buf[x * 2 + 13] = (uint8_t) (stretched >> 8);
     buf[x * 2 + 14] = (uint8_t) (stretched >> 8);
   }
+
+  if (_antiAliasingOn) _antiAliasing(buf);
 
   setCursor(col, line);
 

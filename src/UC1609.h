@@ -78,6 +78,7 @@ class UC1609 {
     void rotate(uint8_t rotateValue);
     void invert(bool invert);
     void setFont(const uint8_t * font);
+    void setAntiAliasing(bool on);
     void setFontScale(uint8_t scale);
     void printChar(const unsigned char c);
     void printChar(const unsigned char c, uint8_t col, uint8_t line); 
@@ -96,9 +97,11 @@ class UC1609 {
     uint8_t _VbiasPOT; // Contrast DEFAULT_VBIAS_POT(0x49), datasheet 00-FE
     const uint8_t * _font = font5x7;
     uint8_t _scale;
+    bool _antiAliasingOn;
     
     void _sendCommand(uint8_t reg, uint8_t value);
     uint16_t _stretch(uint8_t x);
+    void _antiAliasing(uint8_t *array);
 };
 
 #endif
