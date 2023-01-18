@@ -78,8 +78,8 @@ class UC1609 {
     void rotate(uint8_t rotateValue);
     void invert(bool invert);
     void setFont(const uint8_t * font);
-    void setAntiAliasing(bool on);
     void setFontScale(uint8_t scale);
+    void setAntiAliasing(bool on);
     void printChar(const unsigned char c);
     void printChar(const unsigned char c, uint8_t col, uint8_t line); 
     void printStr(const unsigned char *str, uint8_t col, uint8_t line);

@@ -264,14 +264,14 @@ void UC1609::setFont(const uint8_t * font) {
   _font = font;
 }
 
-void UC1609::setAntiAliasing(bool on) {
-  _antiAliasingOn = on;
-}
-
 void UC1609::setFontScale(uint8_t scale) {
   if (scale == 1 || scale == 2) {
     _scale = scale;
   }
+}
+
+void UC1609::setAntiAliasing(bool on) {
+  _antiAliasingOn = on;
 }
 
 /*

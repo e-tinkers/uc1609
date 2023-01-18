@@ -184,6 +184,10 @@ The `setFont()` method is optional and by default the method is not been called,
 
 The `setFontScale()` set the font size to either `1` (standard 5x7 font) or `2` (double-size font). 
 
+***void setAntiAliasing(bool on)***
+
+By default, anti-aliasing is enabled for double-size font, however, for any reason that you'd want to turn it off, you can call this function to turn it off with `setAntiAliasing(false)`.
+
 ***void printChar(const unsigned char c)***
 
 This method print a character to the LCD module at whatever location previously set.
