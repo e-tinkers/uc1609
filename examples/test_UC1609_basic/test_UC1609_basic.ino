@@ -95,7 +95,7 @@ void loop() {
     }    
     delay(5000);
 
-    // Test 5 - Double font
+    // Test 5 - Double-size font
     lcd.clearDisplay();
     lcd.setFontScale(2);                // set font scale to 2
     lcd.printStr(test1_5, 0, 0);
@@ -105,9 +105,36 @@ void loop() {
     lcd.printDoubleChar('H', 0, 6);    // printDoubleChar() does not need to setFontScale(2) first
     lcd.setFontScale(1);
     lcd.printChar('2', 12, 7);
-    lcd.setFontScale(1);
     lcd.printDoubleChar('O', 18, 6);
+    delay(5000);
 
+    lcd.clearDisplay();
+    uint8_t col{0};
+    uint8_t line{0};
+    for(unsigned char i=33; i<97; i++) {
+      lcd.printDoubleChar(i, col, line);
+      col +=12;
+      if(col > 191) {
+        col = 0;
+        line += 2;
+      }
+      delay(10);
+    }
+    delay(5000);
+    
+    lcd.clearDisplay();
+    col = 0;
+    line = 0;
+    for(unsigned char i=97; i<128; i++) {
+      lcd.printDoubleChar(i, col, line);
+      col +=12;
+      if(col > 191) {
+        col = 0;
+        line += 2;
+      }
+      delay(10);
+    }
+    lcd.setFontScale(1);
     delay(5000);
 
 }
