@@ -3,7 +3,7 @@ Table of contents
 
 * [Overview](#overview)
 * [Installation](#installation)
-* [Hardware](##hardware)
+* [Hardware](#hardware)
 * [Software](#software)
 * [Datasheet](#datasheet)
 
