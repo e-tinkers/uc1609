@@ -217,7 +217,7 @@ This method draws an image to the LCD display. The `x` and `y` defines the upper
 
 This method literally performs a hardware reset (`resetDisplay()`) and turn off all the display pixels with `enableDisplay(0)` to put the display in low power consumption mode which is described in page 40 of the UC1609 datasheet.
 
-Datasheets
+Datasheet
 -----------------------------
 
 [UC1609 Datasheet](https://www.buydisplay.com/download/ic/UC1609_Datasheet.pdf)
