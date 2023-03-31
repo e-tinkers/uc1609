@@ -63,7 +63,7 @@
 
 class UC1609 {
   public:
-    UC1609(uint8_t cd, uint8_t rst, uint8_t cs);
+    UC1609(uint8_t cd, uint8_t rst=-1, uint8_t cs);
     ~UC1609(){}; 
     
     void begin(void);

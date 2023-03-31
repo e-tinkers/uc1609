@@ -92,12 +92,16 @@ void UC1609::_antiAliasing(uint8_t *array) {
  */
 void UC1609::begin (void) {
   digitalWrite(_cd, HIGH);
-  digitalWrite(_cs, HIGH);
-  digitalWrite(_rst, HIGH);
+  digitalWrite(_cs, HIGH);  
   
   pinMode(_cd, OUTPUT);
-  pinMode(_rst, OUTPUT);
   pinMode(_cs, OUTPUT);
+
+  // if RST pin is actually defined with a pin, set it as OUTPUT, otherwise skip it
+  if (_rst != -1) {
+    digitalWrite(_rst, HIGH);
+    pinMode(_rst, OUTPUT);
+  }
   
   SPI.begin();
 }
@@ -140,6 +144,8 @@ void UC1609::initDisplay(uint8_t VbiasPOT) {
  *  return: void
  */
 void UC1609::resetDisplay() {
+  if (_rst == -1) return;
+
   digitalWrite(_rst, LOW);
   delayMicroseconds(3);
   digitalWrite(_rst, HIGH);
