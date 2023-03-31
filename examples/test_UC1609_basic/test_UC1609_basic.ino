@@ -17,7 +17,7 @@
 // System default contrast = 0x49, user however can change it with value 0x00 to 0xFE
 const uint8_t contrast=0x38;
 
-UC1609  lcd{CS, CD, RST}; 
+UC1609  lcd(CS, CD, RST); 
 
 
 void setup() {
