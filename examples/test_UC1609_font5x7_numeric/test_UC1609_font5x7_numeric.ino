@@ -10,7 +10,7 @@
 
 // define control pins to be used for the display
 #define CD  PIN_PC0
-#define RST PIN_PC2
+#define RST PIN_PC2    // Set it to -1 if share with MCU's NRST pin
 #define CS  PIN_PC1
 
 // define font to be used for the display
@@ -18,7 +18,7 @@
 // System default contrast = 0x49, user however can change it with value 0x00 to 0xFE
 const uint8_t contrast=0x38;
 
-UC1609  lcd{CD, RST, CS}; 
+UC1609  lcd{CS, CD, RST}; 
 
 
 void setup() {

@@ -11,10 +11,10 @@
 /*
  * UC1609 constructor initializes the variables for CD, RST and CS pins
  */
-UC1609::UC1609(uint8_t cd, uint8_t rst, uint8_t cs) {
+UC1609::UC1609(int8_t cs, int8_t cd, int8_t rst=-1) {
+    _cs = cs;
     _cd = cd;
     _rst = rst;
-    _cs = cs;
 }
 
 /*

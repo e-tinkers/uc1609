@@ -63,7 +63,7 @@
 
 class UC1609 {
   public:
-    UC1609(uint8_t cd, uint8_t rst=-1, uint8_t cs);
+    UC1609(int8_t cs, int8_t cd, int8_t rst=-1);
     ~UC1609(){}; 
     
     void begin(void);
@@ -91,9 +91,9 @@ class UC1609 {
   private:
     const uint8_t _width{192};
     const uint8_t _height{64};
-    uint8_t _cs;
-    uint8_t _cd;
-    uint8_t _rst;
+    int8_t _cs;
+    int8_t _cd;
+    int8_t _rst;
     uint8_t _VbiasPOT; // Contrast DEFAULT_VBIAS_POT(0x49), datasheet 00-FE
     const uint8_t * _font = font5x7;
     uint8_t _scale;
