@@ -63,7 +63,7 @@
 
 class UC1609 {
   public:
-    UC1609(int8_t cs, int8_t cd, int8_t rst=-1);
+    UC1609(int8_t cs, int8_t cd, int8_t rst=-1): _cs(cs), _cd(cd), _rst(rst) {};
     ~UC1609(){}; 
     
     void begin(void);
@@ -87,13 +87,13 @@ class UC1609 {
     void printDoubleChar(const unsigned char c, uint8_t col, uint8_t line);
     void drawImage(uint8_t x, uint8_t y, uint8_t w, uint8_t h, const uint8_t* data);
     void powerDown(void);
-           
+
   private:
     const uint8_t _width{192};
     const uint8_t _height{64};
     int8_t _cs;
     int8_t _cd;
-    int8_t _rst;
+    int8_t _rst;  
     uint8_t _VbiasPOT; // Contrast DEFAULT_VBIAS_POT(0x49), datasheet 00-FE
     const uint8_t * _font = font5x7;
     uint8_t _scale;

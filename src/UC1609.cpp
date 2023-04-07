@@ -9,22 +9,19 @@
 #include "UC1609.h"
 
 /*
- * UC1609 constructor initializes the variables for CD, RST and CS pins
- */
-UC1609::UC1609(int8_t cs, int8_t cd, int8_t rst) : _cs(cs), _cd(cd), _rst(rst) {
-
-}
-
-/*
  * Internal function for setting a value at a specific LCD register via SPI. 
  * Command is clock-in to the register at the rising edge of CD pin.
  * param: reg - LCD register
  *        value - the value for configuring the register
  */
 void UC1609::_sendCommand(uint8_t reg, uint8_t value) {
+  SPI.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0));
+  digitalWrite(_cs, LOW);
   digitalWrite(_cd, LOW); 
   SPI.transfer(reg | value);
   digitalWrite(_cd, HIGH); 
+  digitalWrite(_cs, HIGH);
+  SPI.endTransaction();
 }
 
 /* Strentch a byte into a 16-bit word, based on the algorithm in
@@ -89,6 +86,7 @@ void UC1609::_antiAliasing(uint8_t *array) {
  * return: void
  */
 void UC1609::begin (void) {
+
   digitalWrite(_cd, HIGH);
   digitalWrite(_cs, HIGH);  
   
@@ -118,16 +116,18 @@ void UC1609::initDisplay(uint8_t VbiasPOT) {
   
   SPI.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0));
   digitalWrite(_cs, LOW); 
-  _sendCommand(REG_SYSTEM_RESET, 0);
-  _sendCommand(REG_VBIAS_POT, 0);
-  _sendCommand(REG_VBIAS_POT, _VbiasPOT);
-  _sendCommand(REG_MAPPING_CTRL, NORMAL_ORIENTATION); // can be ROTATED
-  _sendCommand(REG_COL_ADDR_L, 0);
-  _sendCommand(REG_COL_ADDR_H, 0);
-  _sendCommand(REG_PAGE_ADDER, 0);
-  _sendCommand(REG_SCROLL, 0);
-  _sendCommand(REG_INVERSE_DISPLAY, 0);
-  _sendCommand(REG_DISPLAY_ENABLE, DISPLAY_ON);
+  digitalWrite(_cd, LOW); 
+  SPI.transfer(REG_SYSTEM_RESET | 0);
+  SPI.transfer(REG_VBIAS_POT | 0);
+  SPI.transfer(REG_VBIAS_POT | _VbiasPOT);
+  SPI.transfer(REG_MAPPING_CTRL | NORMAL_ORIENTATION); // can be ROTATED
+  SPI.transfer(REG_COL_ADDR_L | 0);
+  SPI.transfer(REG_COL_ADDR_H | 0);
+  SPI.transfer(REG_PAGE_ADDER | 0);
+  SPI.transfer(REG_SCROLL | 0);
+  SPI.transfer(REG_INVERSE_DISPLAY | 0);
+  SPI.transfer(REG_DISPLAY_ENABLE | DISPLAY_ON);
+  digitalWrite(_cd, HIGH); 
   digitalWrite(_cs, HIGH);
   SPI.endTransaction();
 
@@ -156,11 +156,7 @@ void UC1609::resetDisplay() {
  * return: void
  */
 void UC1609::enableDisplay(uint8_t onOff) {
-  SPI.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0));
-  digitalWrite(_cs, LOW);
   _sendCommand(REG_ALL_PIXEL_ON, onOff);
-  digitalWrite(_cs, HIGH);
-  SPI.endTransaction();
 }
 
 /*
@@ -188,9 +184,11 @@ void UC1609::clearDisplay() {
 void UC1609::setCursor(uint8_t col, uint8_t line) {
   SPI.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0));
   digitalWrite(_cs, LOW);
-  _sendCommand(REG_COL_ADDR_L, (col & 0x0F)); 
-  _sendCommand(REG_COL_ADDR_H, (col & 0xF0) >> 4);
-  _sendCommand(REG_PAGE_ADDER , line++); 
+  digitalWrite(_cd, LOW);
+  SPI.transfer(REG_COL_ADDR_L | (col & 0x0F)); 
+  SPI.transfer(REG_COL_ADDR_H | (col & 0xF0) >> 4);
+  SPI.transfer(REG_PAGE_ADDER | line++); 
+  digitalWrite(_cd, HIGH);
   digitalWrite(_cs, HIGH);
   SPI.endTransaction();
 }
@@ -207,7 +205,7 @@ void UC1609::drawLine(uint8_t line, uint8_t dataPattern) {
   digitalWrite(_cs, LOW);
   uint16_t bytes = ((_width * (_height/8))/8); // (width * height/8)/8 = 192 bytes
   for (uint16_t i = 0; i < bytes; i++) {
-   SPI.transfer(dataPattern);
+    SPI.transfer(dataPattern);
   }
   digitalWrite(_cs, HIGH);
   SPI.endTransaction();
@@ -229,11 +227,7 @@ void UC1609::clearLine(uint8_t line) {
  * return: void
  */
 void UC1609::scroll(uint8_t yPixel) {
-  SPI.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0));
-  digitalWrite(_cs, LOW);
   _sendCommand(REG_SCROLL, yPixel);
-  digitalWrite(_cs, HIGH);
-  SPI.endTransaction();
 }
 
 /*
@@ -243,11 +237,7 @@ void UC1609::scroll(uint8_t yPixel) {
  * return: void
  */
 void UC1609::rotate(uint8_t rotateValue) {
-  SPI.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0));
-  digitalWrite(_cs, LOW);
   _sendCommand(REG_MAPPING_CTRL, rotateValue & B00000110);
-  digitalWrite(_cs, HIGH);
-  SPI.endTransaction();
 }
 
 /*
@@ -257,11 +247,7 @@ void UC1609::rotate(uint8_t rotateValue) {
  * return: void
  */
 void UC1609::invert(bool invert) {
-  SPI.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0));
-  digitalWrite(_cs, LOW);
   _sendCommand(REG_INVERSE_DISPLAY, invert);
-  digitalWrite(_cs, HIGH);
-  SPI.endTransaction();
 }
 
 void UC1609::setFont(const uint8_t * font) {
@@ -333,9 +319,13 @@ void UC1609::printDoubleChar(const unsigned char c, uint8_t col, uint8_t line) {
   SPI.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0));
   digitalWrite(_cs, LOW);
   SPI.transfer(&buf[0], 12);
-  _sendCommand(REG_COL_ADDR_L, (col & 0x0F));
-  _sendCommand(REG_COL_ADDR_H, (col & 0xF0) >> 4);
-  _sendCommand(REG_PAGE_ADDER , line + 1);
+
+  digitalWrite(_cd, LOW);
+  SPI.transfer(REG_COL_ADDR_L | (col & 0x0F));
+  SPI.transfer(REG_COL_ADDR_H | ((col & 0xF0) >> 4));
+  SPI.transfer(REG_PAGE_ADDER | line++);
+  digitalWrite(_cd, HIGH);
+
   SPI.transfer(&buf[12], 12);
   digitalWrite(_cs, HIGH);
   SPI.endTransaction();
@@ -381,9 +371,12 @@ void UC1609::drawImage(uint8_t x, uint8_t y, uint8_t w, uint8_t h, const uint8_t
   for (uint8_t ty = 0; ty < h; ty = ty + 8) {
     if (y + ty < 0 || y + ty >= _height)
       continue;
-    _sendCommand(REG_COL_ADDR_L, (column & 0x0F)); 
-    _sendCommand(REG_COL_ADDR_H, (column & 0xF0) >> 4);
-    _sendCommand(REG_PAGE_ADDER , page++); 
+
+    digitalWrite(_cd, LOW);
+    SPI.transfer(REG_COL_ADDR_L | (column & 0x0F)); 
+    SPI.transfer(REG_COL_ADDR_H | ((column & 0xF0) >> 4));
+    SPI.transfer(REG_PAGE_ADDER | page++); 
+    digitalWrite(_cd, HIGH);
 
     for (uint8_t tx = 0; tx < w; tx++) {
       if (x + tx < 0 || x + tx >= _width)
