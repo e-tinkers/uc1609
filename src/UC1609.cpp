@@ -265,6 +265,17 @@ void UC1609::setAntiAliasing(bool on) {
 }
 
 /*
+ * Print a printable character 
+ * param: const char ch - ASCII value of the character
+ * return: 0 - failed, 1 - success
+ */
+size_t write(uint8_t ch) {
+  // to be implement
+  return 1;
+}
+
+
+/*
  * Prints a printable character in the ASCII font table to the display
  * param:  const char character - ASCII value of the character
  * return: void

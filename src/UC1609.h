@@ -61,8 +61,9 @@
 #define SPI_CLOCK          8000000UL  // 8MHz
 #endif
 
-class UC1609 {
+class UC1609: public Print {
   public:
+    using Print::write;
     UC1609(int8_t cs, int8_t cd, int8_t rst=-1): _cs(cs), _cd(cd), _rst(rst) {};
     ~UC1609(){}; 
     
