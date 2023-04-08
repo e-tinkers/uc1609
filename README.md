@@ -110,19 +110,17 @@ Image array is saved in flash memory instead of load into RAM. A full screen ima
 
 The UC1609 construct create an instance of UC1609 object and allows user to pass in the GPIO pins to be used by Command/Data(CD), Reset(RST), and Chip Select (CS) pin of  the UC1609 module.
 
-***void begin(void)***
+***void begin(voiduint8_t VbiasPot = DEFAULT_VBIAS_POT)***
 
 The `begin()` setup the pin mode of each pin to be used for controlling the LCD module, it also called the `SPI.begin()` to enable the SPI communication.
 
-***void initDisplay(uint8_t VbiasPot = DEFAULT_VBIAS_POT)***
+It initializes the LCD module through SPI and make it ready to be used. It also allows to pass in a parameter to set the display contrast with `begin(contract_value)` with a value ranging from 0 to 254, the parameter however is optional as if the user does not pass in a parameter, a default value of `DEFAULT_VBIAS_POT` value (`0x49`) would be used.
 
-The `initDisplay()` initializes the LCD module through SPI and make it ready to be used. The method also allows to pass in a parameter to set the display contrast with `initDisplay(contract_value)` with a value ranging from 0 to 254, the parameter however is optional as if the user does not pass in a parameter, a default value of `DEFAULT_VBIAS_POT` value (`0x49`) would be used.
-
-The `initDisplay()` call `resetDisplay()` prior the initalization and calling `clearDisplay()` after the initialization of the display.
+The `begin()` calls `resetDisplay()` prior the initalization of the display and calling `clearDisplay()` after the initialization of the display.
 
 ***void resetDisplay(void)***
 
-The `resetDispaly()`  performs a hardware reset using RST pin by pulling the RST pin LOW and CD pin HIGH. It is used prior the initialization of the LCD or prior the powering down the LCD.
+The `resetDispaly()`  performs a hardware reset using RST pin by pulling the RST pin LOW and CD pin HIGH. It is used prior the initialization of the LCD or prior the powering down the LCD. If the RST is tied with MCU's Reset Pin (i.e. RTS pin value is set to -1), calling `resetDisplay()` simply return and has no effect.
 
 ***void enableDisplay(uint8_t onOff)***
 
