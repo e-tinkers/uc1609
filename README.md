@@ -180,32 +180,11 @@ The `setFont()` method is optional and by default the method is not been called,
 
 ***void setFontScale(uint8_t scale)***
 
-The `setFontScale()` set the font size to either `1` (standard 5x7 font) or `2` (double-size font). 
+The `setFontScale()` set the font size to either `1` (standard 5x7 font) or `2` (double-size font). The double-size character is stretching from the 5x7 font(6x8 including padding) to twice of it size into 10x14 font (12x16 including paddings). The font stretching technique is based on the alogrithm described in ["Hacker's Delight"](https://www.amazon.com/Hackers-Delight-2nd-Henry-Warren/dp/0321842685/) by Henry S. Warran Jr. (2 edition) p. 139-141. 
 
 ***void setAntiAliasing(bool on)***
 
 By default, anti-aliasing is enabled for double-size font, however, for any reason that you'd want to turn it off, you can call this function to turn it off with `setAntiAliasing(false)`.
-
-***void printChar(const unsigned char c)***
-
-This method print a character to the LCD module at whatever location previously set.
-
-***void printChar(const unsigned char c, uint8_t col, uint8_t line)***
-
-This method is an overloaded function of `printChar(c)` by calling `setCursor(col, line)` first prior to calling `printChar(c)`.
-
-***void printDoubleChar(const unsigned char c, uint8_t col, uint8_t line)***
-
-This method prints double-sized character by stretching the 5x7 font to twice of it size into 12x16 font (including paddings). The font stretching technique is based on the alogrithm described in ["Hacker's Delight"](https://www.amazon.com/Hackers-Delight-2nd-Henry-Warren/dp/0321842685/) by Henry S. Warran Jr. (2 edition) p. 139-141. 
-
-The `printDoubleChar()` method does not require to call `setFontScale()` to set the font scale, the function itself assumed that the character to be printed by the function will be double-size.
-
-***void printStr(const char *str, uint8_t col, uint8_t line)***
-***void printStr(const unsigned char *str, uint8_t col, uint8_t line)***
-
-This method print a c-style string at location specified by `col` and `line`. The cursor will be automatically advance to next col or next line. 
-
-This method supports both standard size character and double-size character. It is required to call `setFontScale(2)` to set the font scale explifiictly to double-size prior using `printStr()` to print double-size string. Refer to `test_UC1609_basic.ino` for the usage example.
 
 ***void drawImage(uint8_t x, uint8_t y, uint8_t w, uint8_t h, const uint8_t *  data)***
 

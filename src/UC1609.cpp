@@ -85,7 +85,7 @@ void UC1609::_antiAliasing(uint8_t *array) {
  *                    parameter is passed in, the default 0x49 would be used.
  * return: void
  */
-void UC1609::begin (uint8_t VbiasPot = DEFAULT_VBIAS_POT) {
+void UC1609::begin (uint8_t VbiasPot) {
 
   digitalWrite(_cd, HIGH);
   digitalWrite(_cs, HIGH);  
@@ -103,7 +103,7 @@ void UC1609::begin (uint8_t VbiasPot = DEFAULT_VBIAS_POT) {
 
   _scale = 1;             // Normal font size
   _antiAliasingEnable = true;
-  _VbiasPOT = VbiasPOT;   // DEFAULT_VBIAS_POT or user-provided constract value
+  _VbiasPOT = VbiasPot;   // DEFAULT_VBIAS_POT or user-provided constract value
 
   resetDisplay();
 
@@ -160,12 +160,14 @@ void UC1609::enableDisplay(uint8_t onOff) {
 void UC1609::clearDisplay() {
   SPI.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0));
   digitalWrite(_cs, LOW);
-  uint16_t bytes = _width * (_height /8); // width * height
+  uint16_t bytes = _width * (_height / 8); // width * height
   for (uint16_t i = 0; i < bytes; i++) {
     SPI.transfer(0);
   }
   digitalWrite(_cs, HIGH);
   SPI.endTransaction();
+  _c_row = 0;
+  _c_col = 0;
 }
 
 /*
@@ -175,12 +177,14 @@ void UC1609::clearDisplay() {
  * return: void
  */
 void UC1609::setCursor(uint8_t col, uint8_t line) {
+  _c_row = line;
+  _c_col = col;
   SPI.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0));
   digitalWrite(_cs, LOW);
   digitalWrite(_cd, LOW);
   SPI.transfer(REG_COL_ADDR_L | (col & 0x0F)); 
   SPI.transfer(REG_COL_ADDR_H | (col & 0xF0) >> 4);
-  SPI.transfer(REG_PAGE_ADDER | line++); 
+  SPI.transfer(REG_PAGE_ADDER | line); 
   digitalWrite(_cd, HIGH);
   digitalWrite(_cs, HIGH);
   SPI.endTransaction();
@@ -189,6 +193,7 @@ void UC1609::setCursor(uint8_t col, uint8_t line) {
 /*
  * Draw a data pattern (0x01 - 0xff) across a line. 0x80 is a line at the lowest pixel of
  * a 6x8 matrix, and 0x81 will draw two line at both the top and the button of the 6x8 matrix.
+ * param: uint8_t line - line 0-7 where the pattern to be drawed
  * param:  uint8_t dataPatern - 0x01-0xff
  * return: void
  */
@@ -196,18 +201,19 @@ void UC1609::drawLine(uint8_t line, uint8_t dataPattern) {
   setCursor(0, line);
   SPI.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0));
   digitalWrite(_cs, LOW);
-  uint16_t bytes = ((_width * (_height/8))/8); // (width * height/8)/8 = 192 bytes
-  for (uint16_t i = 0; i < bytes; i++) {
+  for (uint16_t i = 0; i < _width; i++) {
     SPI.transfer(dataPattern);
   }
   digitalWrite(_cs, HIGH);
   SPI.endTransaction();
+  _c_row = line * _height;
+  _c_col = _width;
 }
 
 /*
  * clearLine is a special version of drawLine by calling the drawLine function with 
- * a paramter of 0 (which draw 0 across the line, which clear the line).
- * param:  void
+ * a pattern of 0 (which draw 0 across the line, i.e. clear the line).
+ * param: uint8_t line - line 0-7 where the pattern to be clear
  * return: void
  */
 void UC1609::clearLine(uint8_t line) {
@@ -263,97 +269,62 @@ void UC1609::setAntiAliasing(bool on) {
  * return: 0 - failed, 1 - success
  */
 size_t UC1609::write(uint8_t ch) {
-  // to be implement
+  switch (ch) {
+    case '\r':
+      _c_col = 0;
+      return 1;
+    case '\n':
+      _c_row++;
+      setCursor(_c_col, _c_row);
+      return 1;
+    default:
+      break;
+  }
+
+  uint8_t fontWidth = readFontByte(_font[0]);
+  uint8_t fontStart = readFontByte(_font[2]);
+  
+  if (_scale == 1) {
+    SPI.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0));
+    digitalWrite(_cs, LOW);
+    SPI.transfer(0x00); // padding col
+    for (uint8_t  col=0; col<fontWidth; col++) {
+      SPI.transfer(readFontByte(_font[(ch - fontStart) * fontWidth + col + 4]));
+    }
+    digitalWrite(_cs, HIGH);
+    SPI.endTransaction();
+    _c_col++;
+  }
+  else {
+    uint8_t buf[24]{0};  // each stretched font is 12x2 bytes, 12 bits wide, and 16 bits high
+    for (uint8_t x = 0; x < fontWidth; x++) {
+      uint16_t stretched = _stretch(readFontByte(_font[(ch-fontStart) * fontWidth + x + 4]));
+      buf[x * 2 + 1] = stretched & 0xFF;
+      buf[x * 2 + 2] = stretched & 0xFF;
+      buf[x * 2 + 13] = (uint8_t) (stretched >> 8);
+      buf[x * 2 + 14] = (uint8_t) (stretched >> 8);
+    }
+
+    if (_antiAliasingEnable) _antiAliasing(buf);
+
+    setCursor(_c_col, _c_row);
+
+    SPI.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0));
+    digitalWrite(_cs, LOW);
+    SPI.transfer(&buf[0], 12);
+
+    digitalWrite(_cd, LOW);
+    SPI.transfer(REG_COL_ADDR_L | (_c_col & 0x0F));
+    SPI.transfer(REG_COL_ADDR_H | (_c_col & 0xF0) >> 4);
+    SPI.transfer(REG_PAGE_ADDER | (_c_row + 1));
+    digitalWrite(_cd, HIGH);
+
+    SPI.transfer(&buf[12], 12);
+    digitalWrite(_cs, HIGH);
+    SPI.endTransaction();
+    _c_col += ((fontWidth * _scale) + 2); // fontWidth * _scale + padding
+  }
   return 1;
-}
-
-
-/*
- * Prints a printable character in the ASCII font table to the display
- * param:  const char character - ASCII value of the character
- * return: void
- */
-void UC1609::printChar(const unsigned char c) {
-
-  SPI.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0));
-  digitalWrite(_cs, LOW);
-  SPI.transfer(0x00); // padding col
-  uint8_t fontWidth = readFontByte(_font[0]);
-  uint8_t fontStart = readFontByte(_font[2]);
-  for (uint8_t  col=0; col<fontWidth; col++) {
-    SPI.transfer(readFontByte(_font[(c - fontStart) * fontWidth + col + 4]));
-  }
-  digitalWrite(_cs, HIGH);
-  SPI.endTransaction();
-
-}
-
-void UC1609::printChar(const unsigned char c, uint8_t column, uint8_t line) {
-    setCursor(column, line);
-    printChar(c);
-}
-
-/*
- * Prints double-sized by stretching the 5x7 font to twice of it size into 12x16 font 
- * (including paddings). 
- * param: const char c - ASCII value of the character;
- *        uint8_t x - cursor pixel position in x-axis;
- *        uint8_t y - cusror line (0 - 7) line position (not pixel) in y-axis, noted that
- *                    there are only 4 lines per screen for double-size font
- * return: void
- */
-void UC1609::printDoubleChar(const unsigned char c, uint8_t col, uint8_t line) {
-
-  uint8_t fontWidth = readFontByte(_font[0]);
-  uint8_t fontStart = readFontByte(_font[2]);
-
-  uint8_t buf[24]{0};  // each stretched font is 12x2 bytes, 12 bits wide, and 16 bits high
-  for (uint8_t x = 0; x < fontWidth; x++) {
-    uint16_t stretched = _stretch(readFontByte(_font[(c-fontStart) * fontWidth + x + 4]));
-    buf[x * 2 + 1] = stretched & 0xFF;
-    buf[x * 2 + 2] = stretched & 0xFF;
-    buf[x * 2 + 13] = (uint8_t) (stretched >> 8);
-    buf[x * 2 + 14] = (uint8_t) (stretched >> 8);
-  }
-
-  if (_antiAliasingEnable) _antiAliasing(buf);
-
-  setCursor(col, line);
-
-  SPI.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0));
-  digitalWrite(_cs, LOW);
-  SPI.transfer(&buf[0], 12);
-
-  digitalWrite(_cd, LOW);
-  SPI.transfer(REG_COL_ADDR_L | (col & 0x0F));
-  SPI.transfer(REG_COL_ADDR_H | ((col & 0xF0) >> 4));
-  SPI.transfer(REG_PAGE_ADDER | line++);
-  digitalWrite(_cd, HIGH);
-
-  SPI.transfer(&buf[12], 12);
-  digitalWrite(_cs, HIGH);
-  SPI.endTransaction();
-
-}
-
-/*
- * Prints a string to the LCD
- * param:  const char *str - poninter to the str
- * return: void
- */
-void UC1609::printStr(const unsigned char *str, uint8_t col, uint8_t line) {
-
-    setCursor(col, line);
-    if (_scale == 1) {
-      while (*str)
-        printChar(*str++);
-    }
-    else {
-      while (*str) {
-        printDoubleChar(*str++, col, line);
-        col += 12;
-      }
-    }
 }
 
 /*

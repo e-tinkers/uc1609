@@ -81,24 +81,23 @@ class UC1609: public Print {
     void setFontScale(uint8_t scale);
     void setAntiAliasing(bool on);
     size_t write(uint8_t ch);
-    void printChar(const unsigned char c);
-    void printChar(const unsigned char c, uint8_t col, uint8_t line); 
-    void printStr(const unsigned char *str, uint8_t col, uint8_t line);
-    void printStr(const char *str, uint8_t col, uint8_t line) { printStr((const unsigned char*) str, col, line);};
-    void printDoubleChar(const unsigned char c, uint8_t col, uint8_t line);
     void drawImage(uint8_t x, uint8_t y, uint8_t w, uint8_t h, const uint8_t* data);
     void powerDown(void);
 
   private:
     const uint8_t _width{192};
     const uint8_t _height{64};
+    const uint8_t * _font{font5x7};
+    
     int8_t _cs;
     int8_t _cd;
-    int8_t _rst;  
+    int8_t _rst;
+
     uint8_t _VbiasPOT; // Contrast DEFAULT_VBIAS_POT(0x49), datasheet 00-FE
-    const uint8_t * _font = font5x7;
     uint8_t _scale;
     bool _antiAliasingEnable;
+    uint8_t _c_row;    // cursor row
+    uint8_t _c_col;    // cursor column
     
     void _sendCommand(uint8_t reg, uint8_t value);
     uint16_t _stretch(uint8_t x);
