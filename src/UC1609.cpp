@@ -85,7 +85,7 @@ void UC1609::_antiAliasing(uint8_t *array) {
  *                    parameter is passed in, the default 0x49 would be used.
  * return: void
  */
-void UC1609::begin (void) {
+void UC1609::begin (uint8_t VbiasPot = DEFAULT_VBIAS_POT) {
 
   digitalWrite(_cd, HIGH);
   digitalWrite(_cs, HIGH);  
@@ -100,20 +100,13 @@ void UC1609::begin (void) {
   }
   
   SPI.begin();
-}
 
-/*
- * Performs a Hard reset and initializes LCD registers and clear the display.
- * param:  void
- * return: void
- */
-void UC1609::initDisplay(uint8_t VbiasPOT) {
-  resetDisplay();
-
-  _VbiasPOT = VbiasPOT;   // DEFAULT_VBIAS_POT or user-provided constract value
   _scale = 1;             // Normal font size
   _antiAliasingEnable = true;
-  
+  _VbiasPOT = VbiasPOT;   // DEFAULT_VBIAS_POT or user-provided constract value
+
+  resetDisplay();
+
   SPI.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0));
   digitalWrite(_cs, LOW); 
   digitalWrite(_cd, LOW); 
@@ -269,7 +262,7 @@ void UC1609::setAntiAliasing(bool on) {
  * param: const char ch - ASCII value of the character
  * return: 0 - failed, 1 - success
  */
-size_t write(uint8_t ch) {
+size_t UC1609::write(uint8_t ch) {
   // to be implement
   return 1;
 }

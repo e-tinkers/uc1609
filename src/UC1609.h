@@ -67,8 +67,7 @@ class UC1609: public Print {
     UC1609(int8_t cs, int8_t cd, int8_t rst=-1): _cs(cs), _cd(cd), _rst(rst) {};
     ~UC1609(){}; 
     
-    void begin(void);
-    void initDisplay(uint8_t VbiasPot = DEFAULT_VBIAS_POT);
+    void begin(uint8_t VbiasPot = DEFAULT_VBIAS_POT);
     void resetDisplay(void);
     void enableDisplay(uint8_t onOff);
     void clearDisplay();
@@ -81,6 +80,7 @@ class UC1609: public Print {
     void setFont(const uint8_t * font);
     void setFontScale(uint8_t scale);
     void setAntiAliasing(bool on);
+    size_t write(uint8_t ch);
     void printChar(const unsigned char c);
     void printChar(const unsigned char c, uint8_t col, uint8_t line); 
     void printStr(const unsigned char *str, uint8_t col, uint8_t line);

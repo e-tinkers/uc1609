@@ -9,7 +9,6 @@ UC1609	KEYWORD1
 #Methods / functions
 
 begin	KEYWORD2
-initDisplay	KEYWORD2
 resetDisplay	KEYWORD2
 enableDisplay	KEYWORD2
 clearDisplay	KEYWORD2

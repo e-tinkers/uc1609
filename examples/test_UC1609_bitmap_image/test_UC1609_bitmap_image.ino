@@ -20,8 +20,7 @@ UC1609  lcd(CS, CD, RST);
 
 
 void setup() {
-  lcd.begin();
-  lcd.initDisplay(contrast);
+  lcd.begin(contrast);
   // lcd.setFont(font5x7);     // This is not required as font5x7 is default font
   lcd.setFontScale(2);
 }
