@@ -29,7 +29,14 @@ void setup() {
 void loop() {
   
   lcd.drawImage(0, 0, 192, 64, bitmap);    // full screen image
-  delay(5000);
+  delay(2000);
+  for (uint8_t i = 0 ; i < 63 ; i++) {     // demonstration of scrolling
+    lcd.scroll(i);
+    delay(50);
+  }
+  lcd.scroll(0);
+  delay(2000);
+  
   lcd.clearDisplay();
 
   // dummy string for demo display

@@ -156,7 +156,7 @@ Unlike the `clearDisplay`, this method clear the specific line of the display. T
 
 ***void scroll(uint8_t yPixel)***
 
-This function scrolls the displayed image up by number of pixels specified by `yPixel`(0-64).
+This function scrolls the displayed image up by number of pixels specified by `yPixel`(0-64). The number of pixels that has been move out of the top of the screen get insert at the bottom of the screen, create an rotation effect. See the demonstration in "test_UC1609_bitmap_image" example.
 
 ***void rotate(uint8_t rotateValue)***
 
