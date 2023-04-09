@@ -274,7 +274,7 @@ size_t UC1609::write(uint8_t ch) {
       _c_col = 0;
       return 1;
     case '\n':
-      _c_row++;
+      _c_row += _scale;
       setCursor(_c_col, _c_row);
       return 1;
     default:
@@ -284,6 +284,13 @@ size_t UC1609::write(uint8_t ch) {
   uint8_t fontWidth = readFontByte(_font[0]);
   uint8_t fontStart = readFontByte(_font[2]);
   
+  // wrap text to next line if the text is wider than screen width
+  if (_c_col >= _width) {
+    _c_col = 0;
+    _c_row += _scale;
+    setCursor(_c_col, _c_row);
+  }
+
   if (_scale == 1) {
     SPI.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0));
     digitalWrite(_cs, LOW);
@@ -293,7 +300,7 @@ size_t UC1609::write(uint8_t ch) {
     }
     digitalWrite(_cs, HIGH);
     SPI.endTransaction();
-    _c_col++;
+    _c_col += (fontWidth + 1);
   }
   else {
     uint8_t buf[24]{0};  // each stretched font is 12x2 bytes, 12 bits wide, and 16 bits high
