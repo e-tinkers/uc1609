@@ -166,8 +166,8 @@ void UC1609::clearDisplay() {
   }
   digitalWrite(_cs, HIGH);
   SPI.endTransaction();
-  _c_row = 0;
-  _c_col = 0;
+  _crow = 0;
+  _ccol = 0;
 }
 
 /*
@@ -177,8 +177,8 @@ void UC1609::clearDisplay() {
  * return: void
  */
 void UC1609::setCursor(uint8_t col, uint8_t line) {
-  _c_row = line;
-  _c_col = col;
+  _crow = line;
+  _ccol = col;
   SPI.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0));
   digitalWrite(_cs, LOW);
   digitalWrite(_cd, LOW);
@@ -206,8 +206,8 @@ void UC1609::drawLine(uint8_t line, uint8_t dataPattern) {
   }
   digitalWrite(_cs, HIGH);
   SPI.endTransaction();
-  _c_row = line * _height;
-  _c_col = _width;
+  _crow = line * _height;
+  _ccol = _width;
 }
 
 /*
@@ -269,26 +269,34 @@ void UC1609::setAntiAliasing(bool on) {
  * return: 0 - failed, 1 - success
  */
 size_t UC1609::write(uint8_t ch) {
+
+  uint8_t fontWidth = readFontByte(_font[0]);
+  uint8_t fontStart = readFontByte(_font[2]);
+
   switch (ch) {
     case '\r':
-      _c_col = 0;
+      _ccol = 0;
       return 1;
     case '\n':
-      _c_row += _scale;
-      setCursor(_c_col, _c_row);
+      _crow += _scale;
+      setCursor(_ccol, _crow);
+      return 1;
+    case '\t':
+      return 1;
+    case '\b':
+      // move the cursor back one space but does not delete the char in place
+      if (_ccol != 0) _ccol -= ((fontWidth * _scale) + _scale);
+      setCursor(_ccol, _crow);
       return 1;
     default:
       break;
   }
-
-  uint8_t fontWidth = readFontByte(_font[0]);
-  uint8_t fontStart = readFontByte(_font[2]);
   
   // wrap text to next line if the text is wider than screen width
-  if (_c_col >= _width) {
-    _c_col = 0;
-    _c_row += _scale;
-    setCursor(_c_col, _c_row);
+  if (_ccol >= _width) {
+    _ccol = 0;
+    _crow += _scale;
+    setCursor(_ccol, _crow);
   }
 
   if (_scale == 1) {
@@ -300,10 +308,10 @@ size_t UC1609::write(uint8_t ch) {
     }
     digitalWrite(_cs, HIGH);
     SPI.endTransaction();
-    _c_col += (fontWidth + 1);
   }
   else {
     uint8_t buf[24]{0};  // each stretched font is 12x2 bytes, 12 bits wide, and 16 bits high
+
     for (uint8_t x = 0; x < fontWidth; x++) {
       uint16_t stretched = _stretch(readFontByte(_font[(ch-fontStart) * fontWidth + x + 4]));
       buf[x * 2 + 1] = stretched & 0xFF;
@@ -314,23 +322,24 @@ size_t UC1609::write(uint8_t ch) {
 
     if (_antiAliasingEnable) _antiAliasing(buf);
 
-    setCursor(_c_col, _c_row);
+    setCursor(_ccol, _crow);
 
     SPI.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0));
     digitalWrite(_cs, LOW);
-    SPI.transfer(&buf[0], 12);
+    SPI.transfer(&buf[0], 12); // padding at beginning
 
     digitalWrite(_cd, LOW);
-    SPI.transfer(REG_COL_ADDR_L | (_c_col & 0x0F));
-    SPI.transfer(REG_COL_ADDR_H | (_c_col & 0xF0) >> 4);
-    SPI.transfer(REG_PAGE_ADDER | (_c_row + 1));
+    SPI.transfer(REG_COL_ADDR_L | (_ccol & 0x0F));
+    SPI.transfer(REG_COL_ADDR_H | (_ccol & 0xF0) >> 4);
+    SPI.transfer(REG_PAGE_ADDER | (_crow + 1));
     digitalWrite(_cd, HIGH);
 
-    SPI.transfer(&buf[12], 12);
+    SPI.transfer(&buf[12], 12);  // padding at end of each font
     digitalWrite(_cs, HIGH);
     SPI.endTransaction();
-    _c_col += ((fontWidth * _scale) + 2); // fontWidth * _scale + padding
   }
+
+  _ccol += ((fontWidth * _scale) + _scale); // fontWidth * _scale + padding
   return 1;
 }
 
