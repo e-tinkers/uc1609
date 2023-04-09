@@ -95,6 +95,7 @@ class UC1609: public Print {
 
     uint8_t _VbiasPOT; // Contrast DEFAULT_VBIAS_POT(0x49), datasheet 00-FE
     uint8_t _scale;
+    uint8_t _padding;
     bool _antiAliasingEnable;
     uint8_t _crow;    // cursor row
     uint8_t _ccol;    // cursor column

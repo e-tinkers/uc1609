@@ -102,6 +102,7 @@ void UC1609::begin (uint8_t VbiasPot) {
   SPI.begin();
 
   _scale = 1;             // Normal font size
+  _padding = 1; 
   _antiAliasingEnable = true;
   _VbiasPOT = VbiasPot;   // DEFAULT_VBIAS_POT or user-provided constract value
 
@@ -160,7 +161,7 @@ void UC1609::enableDisplay(uint8_t onOff) {
 void UC1609::clearDisplay() {
   SPI.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0));
   digitalWrite(_cs, LOW);
-  uint16_t bytes = _width * (_height / 8); // width * height
+  uint16_t bytes = _width * (_height / 8); // width * page
   for (uint16_t i = 0; i < bytes; i++) {
     SPI.transfer(0);
   }
@@ -256,6 +257,7 @@ void UC1609::setFont(const uint8_t * font) {
 void UC1609::setFontScale(uint8_t scale) {
   if (scale == 1 || scale == 2) {
     _scale = scale;
+    _padding = scale;
   }
 }
 
@@ -279,19 +281,26 @@ size_t UC1609::write(uint8_t ch) {
       return 1;
     case '\n':
       _crow += _scale;
+      if ((_crow * 8) >= _height) {
+        clearDisplay();
+      }
       setCursor(_ccol, _crow);
       return 1;
     case '\t':
+      _ccol += (4 * (fontWidth * _scale + _padding));  // tab = 4 spaces
+      setCursor(_ccol, _crow);
       return 1;
     case '\b':
       // move the cursor back one space but does not delete the char in place
-      if (_ccol != 0) _ccol -= ((fontWidth * _scale) + _scale);
+      if (_ccol != 0) _ccol -= (fontWidth * _scale + _padding);
       setCursor(_ccol, _crow);
       return 1;
     default:
-      break;
+      if (ch >= fontStart && ch <= readFontByte(_font[3]))
+        break;
+      return 1;
   }
-  
+
   // wrap text to next line if the text is wider than screen width
   if (_ccol >= _width) {
     _ccol = 0;
@@ -313,7 +322,7 @@ size_t UC1609::write(uint8_t ch) {
     uint8_t buf[24]{0};  // each stretched font is 12x2 bytes, 12 bits wide, and 16 bits high
 
     for (uint8_t x = 0; x < fontWidth; x++) {
-      uint16_t stretched = _stretch(readFontByte(_font[(ch-fontStart) * fontWidth + x + 4]));
+      uint16_t stretched = _stretch(readFontByte(_font[(ch - fontStart) * fontWidth + x + 4]));
       buf[x * 2 + 1] = stretched & 0xFF;
       buf[x * 2 + 2] = stretched & 0xFF;
       buf[x * 2 + 13] = (uint8_t) (stretched >> 8);
@@ -339,7 +348,7 @@ size_t UC1609::write(uint8_t ch) {
     SPI.endTransaction();
   }
 
-  _ccol += ((fontWidth * _scale) + _scale); // fontWidth * _scale + padding
+  _ccol += ((fontWidth * _scale) + _padding);
   return 1;
 }
 
