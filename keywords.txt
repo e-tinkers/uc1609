@@ -21,9 +21,7 @@ scroll	KEYWORD2
 setFont KEYWORD2
 setFontScale	KEYWORD2
 setAntiAliasing KEYWORD2
-printChar	KEYWORD2
-printDoubleChar KEYWORD2
-printStr	KEYWORD2
+write   KEYWORD2
 drawImage	KEYWORD2
 powerDown	KEYWORD2
 readFontByte    KEYWORD2

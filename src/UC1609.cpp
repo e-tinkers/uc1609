@@ -281,10 +281,9 @@ size_t UC1609::write(uint8_t ch) {
       return 1;
     case '\n':
       _crow += _scale;
-      if ((_crow * 8) >= _height) {
+      if (_crow >= _height/8)
         clearDisplay();
-      }
-      setCursor(_ccol, _crow);
+      setCursor(0, _crow);
       return 1;
     case '\t':
       _ccol += (4 * (fontWidth * _scale + _padding));  // tab = 4 spaces
@@ -305,6 +304,8 @@ size_t UC1609::write(uint8_t ch) {
   if (_ccol >= _width) {
     _ccol = 0;
     _crow += _scale;
+    if (_crow >= _height/8)
+        clearDisplay();
     setCursor(_ccol, _crow);
   }
 

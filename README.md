@@ -106,15 +106,16 @@ Image array is saved in flash memory instead of load into RAM. A full screen ima
 
 **API**
 
-***UC1609(uint8_t cd, uint8_t rst, uint8_t cs)***
+***UC1609(uint8_t cd, uint8_t cs, uint8_t rst)***
 
-The UC1609 construct create an instance of UC1609 object and allows user to pass in the GPIO pins to be used by Command/Data(CD), Reset(RST), and Chip Select (CS) pin of  the UC1609 module.
+The UC1609 construct create an instance of UC1609 object and allows user to pass in the GPIO pins to be used by 
+Command/Data(CD), Chip Select (CS) pin and Reset(RST) pin of  the UC1609 module. If there is no dedicated RST pin or the RST pin is tied with MCU's RESET pin, set the RST to -1.
 
 ***void begin(voiduint8_t VbiasPot = DEFAULT_VBIAS_POT)***
 
-The `begin()` setup the pin mode of each pin to be used for controlling the LCD module, it also called the `SPI.begin()` to enable the SPI communication.
-
-It initializes the LCD module through SPI and make it ready to be used. It also allows to pass in a parameter to set the display contrast with `begin(contract_value)` with a value ranging from 0 to 254, the parameter however is optional as if the user does not pass in a parameter, a default value of `DEFAULT_VBIAS_POT` value (`0x49`) would be used.
+The `begin()` setup the pin mode of each pin to be used for controlling the LCD module, and initializes the LCD 
+module through SPI and make it ready to be used. The function allows to pass in a parameter to set the 
+display contrast with `begin(contract_value)` with a value ranging from 0 to 254, the parameter however is optional as if the user does not pass in a parameter, a default value of `DEFAULT_VBIAS_POT` value (`0x49`) would be used.
 
 The `begin()` calls `resetDisplay()` prior the initalization of the display and calling `clearDisplay()` after the initialization of the display.
 
@@ -185,6 +186,9 @@ The `setFontScale()` set the font size to either `1` (standard 5x7 font) or `2` 
 ***void setAntiAliasing(bool on)***
 
 By default, anti-aliasing is enabled for double-size font, however, for any reason that you'd want to turn it off, you can call this function to turn it off with `setAntiAliasing(false)`.
+
+***size_t write(uint8_t ch)***
+Display a character to the display. UC1609 library inherits Arduino `Print` class, this is the implementation of the Print class `Print::write()` method for UC1609 LCD display. All Print class functionality such as `Print()`, `Println()` are supported and can be used. The function return a 1 for success else 0.
 
 ***void drawImage(uint8_t x, uint8_t y, uint8_t w, uint8_t h, const uint8_t *  data)***
 
