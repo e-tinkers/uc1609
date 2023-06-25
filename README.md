@@ -183,7 +183,7 @@ The `setFont()` method is optional and by default the method is not been called,
 
 The `setFontScale()` set the font size to either `1` (standard 5x7 font) or `2` (double-size font). The double-size character is stretching from the 5x7 font(6x8 including padding) to twice of it size into 10x14 font (12x16 including paddings). The font stretching technique is based on the alogrithm described in ["Hacker's Delight"](https://www.amazon.com/Hackers-Delight-2nd-Henry-Warren/dp/0321842685/) by Henry S. Warran Jr. (2 edition) p. 139-141. 
 
-***void setAntiAliasing(bool on)***
+***void setAntiAliasing(bool enable)***
 
 By default, anti-aliasing is enabled for double-size font, however, for any reason that you'd want to turn it off, you can call this function to turn it off with `setAntiAliasing(false)`.
 

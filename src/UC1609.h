@@ -79,7 +79,7 @@ class UC1609: public Print {
     void invert(bool invert);
     void setFont(const uint8_t * font);
     void setFontScale(uint8_t scale);
-    void setAntiAliasing(bool on);
+    void setAntiAliasing(bool enable);
     size_t write(uint8_t ch);
     void drawImage(uint8_t x, uint8_t y, uint8_t w, uint8_t h, const uint8_t* data);
     void powerDown(void);

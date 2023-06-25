@@ -261,8 +261,8 @@ void UC1609::setFontScale(uint8_t scale) {
   }
 }
 
-void UC1609::setAntiAliasing(bool on) {
-  _antiAliasingEnable = on;
+void UC1609::setAntiAliasing(bool enable) {
+  _antiAliasingEnable = enable;
 }
 
 /*
